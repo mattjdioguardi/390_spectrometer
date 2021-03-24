@@ -1,12 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 16 15:58:29 2021
-
-@author: pguest
-"""
-
-
-
+#!/usr/bin/env python
 
 import Ebert
 import u6
@@ -18,14 +10,11 @@ from scipy.signal import find_peaks
 import time
 
 
-def sweep(start_pos, end_pos, step_size):
-        start_in_steps = start_pos
-        end_in_steps = end_pos
-        spectrometer.moveTo(start_in_steps)
+def sweep(start_in_steps, end_in_steps, step_size):
+        spectrometer.moveTo(-start_in_steps)
 
         steps = int(np.ceil((end_in_steps - start_in_steps)/step_size))
         voltages = np.zeros(steps)
-        voltages[:]=np.nan
         angles = np.zeros(steps)
 
         for i in range(steps):
@@ -44,10 +33,18 @@ def sweep(start_pos, end_pos, step_size):
 
 def refine(positions, voltages, step_size):
     peaks, _ = find_peaks(-voltages, height = .5)
-    fine_data = np.zeros((len(peaks),2))
+    points = int(np.ceil(100/step_size))
+    fine_peaks = np.zeros((len(peaks),2,points))
+    all_angles = np.zeros(0)
+    all_voltages = np.zeros(0)
+
 
     for i in range(len(peaks)):
-        fine_data[i] = sweep(positions[peaks[i]]+50,positions[peaks[i]]-50,step_size)
+        fine_peaks[i] = sweep(positions[peaks[i]]+50,positions[peaks[i]]-50,step_size)
+        all_angles.concatenate((all_angles,fine_peaks[i][0]))
+        all_voltages.concatenate((all_voltagesfine_peaks[i][1]))
+
+    return all_angles, all_voltages, fine_peaks
 
 
 
@@ -62,8 +59,26 @@ if __name__ == '__main__':
     end = int(input("end angle:"))*25600
     step = int(input("step size:"))
     positions, voltages = sweep(start,end,step)
+    fine_angles, fine_voltages, fine_data = refine(positions,voltages,1)
 
-    refine(positions,voltages,1)
+    df = pd.DataFrame()
+    df["angles"] = fine_angles
+    df["voltages"] = fine_voltages
+
+    df1 = pd.DataFrame()
+    for i in range(len(fine_data)):
+        df1["peak " + str(i) + " step#"] = fine_data[i][0]
+        df1["peak " + str(i) + " voltage"] = fine_data[i][1]
+
+    df = pd.concat([df,df1], axis=1)
+    time = datetime.now().strftime("%d-%m-%Y_%H:%M:%S")
+    df.to_csv("Ebert_" + time + ".csv", index=False)
+
+
+
+
+
+
 
 
 
