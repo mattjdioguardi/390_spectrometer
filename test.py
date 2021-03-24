@@ -13,8 +13,6 @@ all_angles = np.zeros(0)
 all_voltages = np.zeros(0)
 
 
-
-
 for i in range(len(fine_peaks)):
     all_angles =  np.concatenate((all_angles, fine_peaks[i][0]))
     all_voltages = np.concatenate((all_voltages, fine_peaks[i][1]))
