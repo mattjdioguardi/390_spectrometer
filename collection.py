@@ -90,14 +90,6 @@ if __name__ == '__main__':
     df.to_csv("Ebert_" + time + ".csv", index=False)
 
 
-
-
-
-
-
-
-
-
-
+    #courtesy
     e.moveTo(0)
     e.close()
